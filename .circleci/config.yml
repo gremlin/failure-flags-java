@@ -5,3 +5,9 @@ workflows:
   checkout-build-test:
     jobs:
       - gradle/test
+      - deploy:
+          name: Publish main to release repository
+          command: |
+            if [ "$CIRCLE_BRANCH" != "main" ]; then
+              ./gradlew publish
+            fi
