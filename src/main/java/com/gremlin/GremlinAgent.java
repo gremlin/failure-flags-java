@@ -158,7 +158,7 @@ public class GremlinAgent implements FailureFlags {
       throw new UnsupportedOperationException();
     }
 
-    public GremlinAgent buildMock(boolean isActive) {
+    public GremlinAgent buildMock(final boolean isActive) {
       this.isMock = true;
       this.isActive = isActive;
       return new GremlinAgent(this);
@@ -166,7 +166,7 @@ public class GremlinAgent implements FailureFlags {
   }
 
   @Override
-  public boolean isDependencyTestActive(String dependencyName, TestType test) {
+  public boolean isDependencyTestActive(final String dependencyName, final TestType test) {
     if (isMock) {
       return isActive;
     }
