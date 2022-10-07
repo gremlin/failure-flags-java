@@ -1,17 +1,7 @@
-version: 2
-jobs:
-  build:
-    machine: true
-    steps:
-      - checkout
-
-      - run:
-          command: |
-            ./gradlew clean test
-
-      - deploy:
-          name: Publish main to release repository
-          command: |
-            if [ "$CIRCLE_BRANCH" = "main" ]; then
-              ./gradlew publish
-            fi
+version: '2.1'
+orbs:
+  gradle: circleci/gradle@3.0.0
+workflows:
+  checkout-build-test:
+    jobs:
+      - gradle/test
