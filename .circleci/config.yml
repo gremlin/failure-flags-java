@@ -5,20 +5,3 @@ workflows:
   checkout-build-test:
     jobs:
       - gradle/test
-
-      - deploy:
-          filters:
-            branches:
-              ignore: [main]
-
-
-jobs:
-  deploy:
-    machine:
-      image: ubuntu-2004:202010-01
-    steps:
-      - checkout
-      - run:
-          name: publish to S3 bucket
-          command: |
-            ./gradlew publish
