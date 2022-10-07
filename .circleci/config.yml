@@ -6,8 +6,16 @@ workflows:
     jobs:
       - gradle/test
       - deploy:
-          name: Publish main to release repository
+          filters:
+            branches:
+              ignore: [main]
+
+
+jobs:
+  deploy:
+    steps:
+      - checkout
+      - run:
+          name: publish to S3 bucket
           command: |
-            if [ "$CIRCLE_BRANCH" != "main" ]; then
-              ./gradlew publish
-            fi
+            ./gradlew publish
