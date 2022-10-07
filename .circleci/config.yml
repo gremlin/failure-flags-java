@@ -5,6 +5,7 @@ workflows:
   checkout-build-test:
     jobs:
       - gradle/test
+
       - deploy:
           filters:
             branches:
@@ -13,6 +14,8 @@ workflows:
 
 jobs:
   deploy:
+    machine:
+      image: ubuntu-2004:202010-01
     steps:
       - checkout
       - run:
