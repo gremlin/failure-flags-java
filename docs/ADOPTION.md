@@ -23,14 +23,19 @@ The code below is what it might look like to adopt a minimal Failure Flags frame
 // The GremlinAgent with auto detect all of these attributes, 
 // but the adopter can override them via builder.
 FailureFlags gremlin = new GremlinAgent.Builder()
-    .withRegion(...)       // omit to autoconfigure
-    .withZone(...)         // omit to autoconfigure
-    .withStage(...)        // omit to autoconfigure
-    .withVersion(...)      // omit to autoconfigure
-    .withBuild(...)        // omit to autoconfigure
-    .withTagPair(..., ...) // omit to autoconfigure
-    .buildMock(true);      // false to always return false 
-
+    .withIdentifier(...)       // required. omit to autoconfigure from /etc/gremlin/config.yaml
+    .withTeamId(...)           // required. omit to autoconfigure from /etc/gremlin/config.yaml
+    .withTeamSecret(...)       // required for secret based auth. omit to autoconfigure from /etc/gremlin/config.yaml
+    .withTeamCertificate(...)  // requird for cert based auth. omit to autoconfigure from /etc/gremlin/config.yaml
+    .withTeamKey(...)          // required for cert based auth, omit to autoconfigure from /etc/gremlin/config.yaml
+    .withRegion(...)           // omit to autoconfigure
+    .withZone(...)             // omit to autoconfigure
+    .withStage(...)            // omit to autoconfigure
+    .withVersion(...)          // omit to autoconfigure
+    .withBuild(...)            // omit to autoconfigure
+    .withTagPair(..., ...)     // omit to autoconfigure
+    .buildMock(true);          // false to always return false 
+        
 ...
 
 // Throw some application-defined exception for calls to a specific dependency
@@ -171,3 +176,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 }
 ```
 
+In addition to the gremlin infrastructure agent config file typically located in `/etc/gremlin/config.yaml`, you can also add additional config for failure flags in `~/.gremlin/config.yaml`. The failure flags framework will look in both of these locations to auto-configure the failure flags agent. 
+
+Example of additional configuration in `~/.gremlin/config.yaml`
+```
+region: us-west-1
+zone: us-west-1a
+build: 2.3.0
+version: 1.1.1
+tags:
+  app: demo
+```
