@@ -37,7 +37,6 @@ public class EnvironmentVariableAgentProvider implements FailureFlagAgentProvide
     String teamCertificate = System.getenv(TEAM_CERTIFICATE);
     String teamKey = System.getenv(TEAM_KEY);
 
-    GremlinAgent.Builder builder = AgentProviderUtils.getBuilder(identifier, region, zone, stage, version, build, teamId, teamSecret, tags, teamCertificate, teamKey);
-    return builder;
+    return AgentProviderUtils.getBuilder(identifier, region, zone, stage, version, build, teamId, teamSecret, tags, teamCertificate, teamKey);
   }
 }
