@@ -16,8 +16,7 @@ maven {
 }
 ```
 
-The code below is what it might look like to adopt a minimal Failure Flags framework.     
-
+The code below is what it might look like to adopt a minimal Failure Flags framework.
 
 ```java
 // Create an agent in your application
@@ -36,7 +35,7 @@ FailureFlags gremlin = new GremlinAgent.Builder()
     .withBuild(...)            // omit to autoconfigure
     .withTagPair(..., ...)     // omit to autoconfigure
     .buildMock(true);          // false to always return false 
-
+        
 ...
 
 // Throw some application-defined exception for calls to a specific dependency
@@ -176,8 +175,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 }
 ```
-
-###Auto-Configuration
 
 In addition to the gremlin infrastructure agent config file typically located in `/etc/gremlin/config.yaml`, you can also add additional config for failure flags in `~/.gremlin/config.yaml`. The failure flags framework will look in both of these locations to auto-configure the failure flags agent. 
 
