@@ -1,0 +1,58 @@
+## Gremlin Identifier; uniquely identifies this machine with Gremlin
+## (can also set with GREMLIN_IDENTIFIER environment variable)
+identifier: gremlin-01
+
+## Gremlin Team Id; you can find this value at https://app.gremlin.com/settings/teams
+## (can also be set with GREMLIN_TEAM_ID environment variable)
+team_id: 11111111-1111-1111-1111-111111111111
+
+## Gremlin Client Tags; Tag your machine with key-value pairs that help you target this machine during attacks
+## (can also set with GREMLIN_CLIENT_TAGS environment variable)
+tags:
+  service: pet-store
+  interface: http
+
+## Gremlin Team Secret, should not be set when using `team_certificate`+`team_private_key`
+## (can also set with GREMLIN_TEAM_SECRET environment variable)
+#team_secret: 11111111-1111-1111-1111-111111111111
+
+## Gremlin Team Certificate, should not be set when using `team_secret`.
+## Paste certificate content here or a paths to the file (prefixed with `file://`)
+## (can also set with GREMLIN_TEAM_CERTIFICATE_OR_FILE environment variable)
+team_certificate: |
+  -----BEGIN CERTIFICATE-----
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  1111111111111111111111111111111111111111111111111111111111111111
+  11111111111111111111111111111111111111111111111111==
+  -----END CERTIFICATE-----
+
+## Gremlin Team Certificate, should not be set when using `team_secret`.
+## Paste certificate content here or a paths to the file (prefixed with `file://`)
+## (can also set with GREMLIN_TEAM_PRIVATE_KEY_OR_FILE environment variable)
+team_private_key: file:///var/lib/gremlin/key.pem
+
+## HTTPS Proxy, set this when routing outbound Gremlin HTTPS traffic through a proxy
+## (can also set with HTTPS_PROXY or https_proxy environment variables)
+https_proxy: https://localhost:3128
+
+## SSL CERT FILE, set this when using a https proxy with a self-signed certificate
+## Paste certificate content here or a paths to the file (prefixed with `file://`)
+## (can also set with SSL_CERT_FILE environment variable)
+ssl_cert_file: file:///var/lib/gremlin/proxy_cert.pem
+
+## Push Metrics, tell Gremlin whether to send system metrics to the control plane for charting the impact of attacks in
+## real time. Metrics are only collected during active attacks, and only metrics relevant to the attack are collected.
+## defaults to `true`
+## (can also set with PUSH_METRICS environment variable)
+push_metrics: true
+
+## Collect Process Data, data about running processes is sent to Gremlin for service discovery.
+## defaults to `true` as of Gremlin Linux Agent 2.25.0
+collect_processes: true

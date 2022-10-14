@@ -1,0 +1,7 @@
+region: us-west-1
+zone: us-west-1a
+build: 2.3.0
+teamId: otherteam
+teamSecret: somesecret
+tags:
+  app: control
