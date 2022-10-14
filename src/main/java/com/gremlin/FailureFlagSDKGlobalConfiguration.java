@@ -1,6 +1,10 @@
 package com.gremlin;
 
 public class FailureFlagSDKGlobalConfiguration {
+  private FailureFlagSDKGlobalConfiguration() {
+    throw new IllegalStateException("Utility class");
+  }
+
   public static final String IDENTIFIER = "IDENTIFIER";
   public static final String REGION = "REGION";
   public static final String ZONE = "ZONE";

@@ -32,10 +32,8 @@ public class FailureFlagConfigFileAgentProvider implements FailureFlagAgentProvi
     try {
       InputStream inputStream = new FileInputStream(fileLocation);
       FailureFlagYamlConfig failureFlagYamlConfig = yaml.load(inputStream);
-      GremlinAgent.Builder builder = AgentProviderUtils.getBuilder(failureFlagYamlConfig.identifier, failureFlagYamlConfig.region, failureFlagYamlConfig.zone, failureFlagYamlConfig.stage, failureFlagYamlConfig.version, failureFlagYamlConfig.build,
+      return AgentProviderUtils.getBuilder(failureFlagYamlConfig.identifier, failureFlagYamlConfig.region, failureFlagYamlConfig.zone, failureFlagYamlConfig.stage, failureFlagYamlConfig.version, failureFlagYamlConfig.build,
           failureFlagYamlConfig.teamId, failureFlagYamlConfig.teamSecret, failureFlagYamlConfig.tags, failureFlagYamlConfig.teamCertificate, failureFlagYamlConfig.teamKey);
-
-      return builder;
     } catch (FileNotFoundException e) {
       return new Builder();
     }

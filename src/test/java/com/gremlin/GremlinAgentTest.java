@@ -44,13 +44,13 @@ public class GremlinAgentTest {
   private static final String REGION_NEW = "regionNew";
 
   @Test
-  public void buildGremlinAgent_throwsUnSupportedOperationException() {
+  void buildGremlinAgent_throwsUnSupportedOperationException() {
     assertThrows(UnsupportedOperationException.class, () ->
         new GremlinAgent.Builder().withIdentifier(IDENTIFIER).build());
   }
 
   @Test
-  public void buildMockGremlinAgent_setsAllPropertiesOnGremlinAgent() {
+  void buildMockGremlinAgent_setsAllPropertiesOnGremlinAgent() {
     GremlinAgent gremlinAgent = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -84,7 +84,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenIsActiveTrue_returnsTrueForAnyTestAndDependencyTuple() {
+  void buildMockGremlinAgent_whenIsActiveTrue_returnsTrueForAnyTestAndDependencyTuple() {
     FailureFlags gremlin = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -105,7 +105,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenIsActiveFalse_returnsFalseForAnyTestAndDependencyTuple() {
+  void buildMockGremlinAgent_whenIsActiveFalse_returnsFalseForAnyTestAndDependencyTuple() {
     FailureFlags gremlin = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -126,7 +126,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenIdentifierNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
+  void buildMockGremlinAgent_whenIdentifierNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
     GremlinAgent.Builder builder = new GremlinAgent.Builder()
         .withRegion(REGION)
         .withZone(ZONE)
@@ -144,7 +144,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenTeamIdNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
+  void buildMockGremlinAgent_whenTeamIdNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
     GremlinAgent.Builder builder = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -162,7 +162,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenTeamCredsNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
+  void buildMockGremlinAgent_whenTeamCredsNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
     GremlinAgent.Builder builder = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -177,7 +177,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenTeamCertPresentButNoKeyPresentNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
+  void buildMockGremlinAgent_whenTeamCertPresentButNoKeyPresentNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
     GremlinAgent.Builder builder = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -193,7 +193,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenTeamKeyPresentButNoCertPresentNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
+  void buildMockGremlinAgent_whenTeamKeyPresentButNoCertPresentNotPresentAndDefaultProviderChain_returnsFalseOnValidate() {
     GremlinAgent.Builder builder = new GremlinAgent.Builder()
         .withIdentifier(IDENTIFIER)
         .withRegion(REGION)
@@ -209,7 +209,7 @@ public class GremlinAgentTest {
   }
 
   @Test
-  public void buildMockGremlinAgent_whenEnvironmentAgentProvider_usesEnvironmentAndOverridesTheRest() {
+  void buildMockGremlinAgent_whenEnvironmentAgentProvider_usesEnvironmentAndOverridesTheRest() {
     EnvironmentVariableAgentProvider environmentVariableAgentProvider = mock(
         EnvironmentVariableAgentProvider.class);
     when(environmentVariableAgentProvider.getGremlinAgentBuilder()).thenReturn(

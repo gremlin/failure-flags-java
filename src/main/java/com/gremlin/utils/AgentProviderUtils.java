@@ -9,6 +9,10 @@ import java.util.Map.Entry;
 
 public class AgentProviderUtils {
 
+  private AgentProviderUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
   public static Map<String, String> getTags(String tags) {
     Map<String, String> tagsMap = new HashMap<>();
     if (tags != null) {
@@ -28,8 +32,8 @@ public class AgentProviderUtils {
   private static void populateBuilderWithTags(Map<String, String> tags,
       GremlinAgent.Builder builder) {
     if (tags != null) {
-      for (Entry keyValue : tags.entrySet()) {
-        builder.withTagPair(keyValue.getKey().toString(), keyValue.getValue().toString());
+      for (Entry<String, String> keyValue : tags.entrySet()) {
+        builder.withTagPair(keyValue.getKey(), keyValue.getValue());
       }
     }
   }

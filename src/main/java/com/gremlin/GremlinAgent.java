@@ -241,22 +241,15 @@ public class GremlinAgent implements FailureFlags {
 
     public boolean isValidationPassed() {
       //Check for required config settings
-      if (this.identifier == null || identifier.isEmpty()) {
-        return false;
-      }
-      if (this.teamId == null || this.teamId.isEmpty()) {
-        return false;
-      }
-      if ((this.teamSecret == null || this.teamSecret.isEmpty()) && this.teamCertificate == null
-          && this.teamKey == null) {
-        return false;
-      }
-      if ((this.teamSecret == null || this.teamSecret.isEmpty()) && (this.teamCertificate == null
-          && this.teamKey != null)) {
-        return false;
-      }
-      if ((this.teamSecret == null || this.teamSecret.isEmpty()) && (this.teamCertificate != null
-          && this.teamKey == null)) {
+      if (this.identifier == null
+          || identifier.isEmpty()
+          || this.teamId == null
+          || this.teamId.isEmpty()
+          || ((this.teamSecret == null || this.teamSecret.isEmpty()) && (
+          (this.teamCertificate == null
+              && this.teamKey == null) || (this.teamCertificate == null
+              && this.teamKey != null) || (this.teamCertificate != null
+              && this.teamKey == null)))) {
         return false;
       }
       return true;
