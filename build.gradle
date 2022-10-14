@@ -8,11 +8,15 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    maven { url "https://plugins.gradle.org/m2/" }
 }
 
 dependencies {
+    implementation 'org.yaml:snakeyaml:1.33'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    testImplementation 'org.mockito:mockito-core:2.23.0'
 }
 
 test {
