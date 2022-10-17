@@ -5,7 +5,7 @@ public class FailureFlagSDKGlobalConfiguration {
     throw new IllegalStateException("Utility class");
   }
 
-  //Failure flag config
+  //Failure flag config - env vars or system properties
   public static final String IDENTIFIER = "IDENTIFIER";
   public static final String REGION = "REGION";
   public static final String ZONE = "ZONE";
