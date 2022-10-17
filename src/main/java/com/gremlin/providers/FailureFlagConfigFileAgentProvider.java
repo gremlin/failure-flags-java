@@ -1,5 +1,8 @@
 package com.gremlin.providers;
 
+import static com.gremlin.FailureFlagSDKGlobalConfiguration.GREMLIN_FAILURE_FLAGS_CONFIG_FILE;
+import static com.gremlin.FailureFlagSDKGlobalConfiguration.IDENTIFIER;
+
 import com.gremlin.GremlinAgent;
 import com.gremlin.GremlinAgent.Builder;
 import com.gremlin.utils.AgentProviderUtils;
@@ -22,6 +25,10 @@ public class FailureFlagConfigFileAgentProvider implements FailureFlagAgentProvi
 
   public FailureFlagConfigFileAgentProvider(String configFileLocation) {
     this.fileLocation = configFileLocation;
+    String customConfigFileLocation = System.getenv(GREMLIN_FAILURE_FLAGS_CONFIG_FILE);
+    if (customConfigFileLocation != null && !customConfigFileLocation.isEmpty()) {
+      this.fileLocation = customConfigFileLocation;
+    }
   }
 
 
