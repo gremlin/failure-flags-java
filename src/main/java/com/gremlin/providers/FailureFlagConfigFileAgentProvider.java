@@ -1,7 +1,6 @@
 package com.gremlin.providers;
 
 import static com.gremlin.FailureFlagSDKGlobalConfiguration.GREMLIN_FAILURE_FLAGS_CONFIG_FILE;
-import static com.gremlin.FailureFlagSDKGlobalConfiguration.IDENTIFIER;
 
 import com.gremlin.GremlinAgent;
 import com.gremlin.GremlinAgent.Builder;
