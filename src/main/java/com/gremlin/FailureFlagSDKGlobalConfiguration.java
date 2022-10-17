@@ -5,6 +5,7 @@ public class FailureFlagSDKGlobalConfiguration {
     throw new IllegalStateException("Utility class");
   }
 
+  //Failure flag config - env vars or system properties
   public static final String IDENTIFIER = "IDENTIFIER";
   public static final String REGION = "REGION";
   public static final String ZONE = "ZONE";
@@ -16,6 +17,9 @@ public class FailureFlagSDKGlobalConfiguration {
   public static final String TEAM_SECRET = "TEAM_SECRET";
   public static final String TEAM_CERTIFICATE = "TEAM_CERTIFICATE";
   public static final String TEAM_KEY = "TEAM_KEY";
+
+  //Failure flag config file location
+  public static final String GREMLIN_FAILURE_FLAGS_CONFIG_FILE = "GREMLIN_FAILURE_FLAGS_CONFIG_FILE";
 
   //System properties
   public static final String JAVA_VENDOR = "java.vendor";
