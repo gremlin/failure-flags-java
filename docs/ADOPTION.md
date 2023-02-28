@@ -38,15 +38,48 @@ FailureFlags gremlin = new GremlinAgent.Builder()
         
 ...
 
+// provide fault behavior as a callback
+gremlin.ifTestActive(CODE_POINT_NAME, GremlinTests.Availability, config -> {
+    Gremlins.Latency(config["latency"]);
+    Gremlins.Throw(config["exceptionType"])
+});
+
+// A custom fault implementation such as this might benefit from reusing a provided 
+// fault implementation like the following example.
+gremlin.ifTestActive((CODE_POINT_NAME, GremlinTests.ExpiredCertificate, config -> {
+    throw new javax.net.ssl.SSLHandshakeException("PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed");
+});
+
+// use a provided fault implementation
+gremlin.ifTestActive((CODE_POINT_NAME, GremlinTests.ExpiredCertificate, Gremlins::expiredCertificate);
+
+// take an action if there are no tests active for the named code point
+gremlin.isTestInactive(CODE_POINT_NAME) {
+    HttpClient client = HttpClient.newBuilder()
+        .version(Version.HTTP_1_1)
+        .followRedirects(Redirect.NORMAL)
+        .connectTimeout(Duration.ofSeconds(20))
+        .proxy(ProxySelector.of(new InetSocketAddress("proxy.example.com", 80)))
+        .authenticator(Authenticator.getDefault())
+        .build();
+    HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+    ...
+}
+```
+
+### Or use explicit manual branching, and a boolean check (not using control-plane provided configuration)
+
+```java
 // Throw some application-defined exception for calls to a specific dependency
-if(gremlin.isDependencyTestActive(DEPENDENCY_NAME, GremlinTests.Availability)) {
+if(gremlin.isTestActive(DEPENDENCY_NAME, GremlinTests.Availability)) {
     // If the dependency is under an Availability test
     throw new ServiceUnavailableException();
-} else if (gremlin.isDependencyTestActive(DEPENDENCY_NAME, GremlinTests.ExpiredCertificate) {
+} else if (gremlin.isTestActive(DEPENDENCY_NAME, GremlinTests.ExpiredCertificate) {
     // If the dependency is under a certificate expiration test
     // A.K.A. How do we react when this dependency's SSL certificate expires?
     throw new javax.net.ssl.SSLHandshakeException("PKIX path validation failed: java.security.cert.CertPathValidatorException: validity check failed");
 } else {
+    // This is the dependency
     HttpClient client = HttpClient.newBuilder()
         .version(Version.HTTP_1_1)
         .followRedirects(Redirect.NORMAL)
