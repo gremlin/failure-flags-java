@@ -1,6 +1,9 @@
+package com.javaSDK;
+
 import java.util.Random;
 
 public class fault {
+
     private static void timeout(long ms) {
         try {
             Thread.sleep(ms);
@@ -9,7 +12,7 @@ public class fault {
         }
     }
 
-    static void latency(Experiment experiment) {
+    public static void latency(Experiment experiment) {
         if (experiment.effect == null || experiment.effect.latency == null)
             return;
 
@@ -26,7 +29,7 @@ public class fault {
         }
     }
 
-    static void exception(Experiment experiment) {
+    public static void exception(Experiment experiment) {
         if (experiment.effect == null || experiment.effect.exception == null)
             return;
 
@@ -40,7 +43,7 @@ public class fault {
         }
     }
 
-    static PrototypeObject data(Experiment experiment, PrototypeObject prototype) {
+    public static PrototypeObject data(Experiment experiment, PrototypeObject prototype) {
         if (experiment.effect == null || !(experiment.effect.data instanceof DataObject))
             return prototype;
 
@@ -53,45 +56,38 @@ public class fault {
         return res;
     }
 
-    static class LatencyObject {
-        Integer ms;
-        Integer jitter;
-    }
-
-    static class ExceptionObject extends Throwable {
-    }
-
-    static class DataObject extends PrototypeObject {
-    }
-
-    static class PrototypeObject {
-        void copyProperties(PrototypeObject other) {
-            // Copy properties from 'other' to 'this'
-        }
-    }
-
-    static class EffectObject {
-        Object latency;
-        Object exception;
-        Object data;
-    }
-
-    static class Experiment {
-        EffectObject effect;
-    }
-
-    static void delayedException(Experiment e) {
+    public static void delayedException(Experiment e) {
         latency(e);
         exception(e);
     }
 
-    static PrototypeObject delayedDataOrException(Experiment e, PrototypeObject dataPrototype) {
+    public static PrototypeObject delayedDataOrException(Experiment e, PrototypeObject dataPrototype) {
         latency(e);
         exception(e);
         return data(e, dataPrototype);
     }
 
-    public static void main(String[] args) {
-        // You can test the functions here
+    public static class EffectObject {
+        Object latency;
+        Object exception;
+        Object data;
     }
+    public static class Experiment {
+        EffectObject effect;
+    }
+    public static class LatencyObject {
+        Integer ms;
+        Integer jitter;
+    }
+    public static class PrototypeObject {
+        void copyProperties(PrototypeObject other) {
+            // Copy properties from 'other' to 'this'
+        }
+    }
+    public static class ExceptionObject extends Throwable {
+    }
+
+    public static class DataObject extends PrototypeObject {
+    }
+
 }

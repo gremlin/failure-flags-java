@@ -14,10 +14,18 @@ repositories {
 dependencies {
     implementation 'org.yaml:snakeyaml:2.0'
     implementation 'org.slf4j:slf4j-api:2.0.5'
-    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    testImplementation 'org.mockito:mockito-core:2.23.0'
+    implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+
+    // JUnit 5 Jupiter API
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+
+    // JUnit 5 Jupiter Engine (Runtime dependency for running tests)
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    // Mockito for JUnit Jupiter
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.4.0'
+
+    testImplementation 'com.github.tomakehurst:wiremock-standalone:2.27.2'
 }
 
 test {
