@@ -6,39 +6,43 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class fetch {
-    private static int port;
-
-    public static String fetchExperiment(String name, String s) throws IOException {
-        String url = "http://localhost:8080/experiment";
-        String payload = String.format("{\"name\": \"%s\", \"labels\": {}}", name);
-
-        URL apiUrl = new URL(url);
-        HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
-
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = payload.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        }
-
-        int statusCode = connection.getResponseCode();
-        if (statusCode >= 200 && statusCode < 300) {
-            // If the response is successful, read and return the content
-            try (InputStream inputStream = connection.getInputStream()) {
-                byte[] responseBytes = inputStream.readAllBytes();
-                return new String(responseBytes, StandardCharsets.UTF_8);
-            }
-        } else {
-            // Handle error response
-            throw new IOException("HTTP status code: " + statusCode + ", message: " + connection.getResponseMessage());
+    public static void main(String[] args) {
+        try {
+            fetchExperiment("example", new HashMap<>(), false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    public static void setPort(int port) {
-        fetch.port = port;
+    public static void fetchExperiment(String name, Map<String, Object> labels, boolean debug) throws IOException {
+        if (debug) System.out.println("fetch experiment for " + name + " " + labels);
+        if (name == null) {
+            throw new IllegalArgumentException("invalid failure-flag name");
+        }
+        String postData = "{\"name\":\"" + name + "\",\"labels\":" + labels.toString() + "}";
+        byte[] postDataBytes = postData.getBytes(StandardCharsets.UTF_8);
+
+        URL url = new URL("http://localhost:5032/experiment");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setConnectTimeout(1000);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+        conn.setDoOutput(true);
+
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(postDataBytes);
+        }
+
+        int responseCode = conn.getResponseCode();
+        if (responseCode < 200 || responseCode > 299) {
+            throw new IOException("HTTP status code: " + responseCode + ", message: " + conn.getResponseMessage());
+        } else {
+            System.out.println("HTTP status code: " + responseCode + ", message: " + conn.getResponseMessage());
+        }
     }
 }

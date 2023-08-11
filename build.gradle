@@ -15,6 +15,10 @@ dependencies {
     implementation 'org.yaml:snakeyaml:2.0'
     implementation 'org.slf4j:slf4j-api:2.0.5'
     implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.1'
+    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.11.1'
+    runtimeOnly 'com.amazonaws:aws-lambda-java-log4j2:1.5.1'
 
     // JUnit 5 Jupiter API
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
