@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Map;
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PrototypeObject {
@@ -16,5 +15,29 @@ public class PrototypeObject {
         this.latency = other.latency;
         this.exception = other.exception;
         this.data = other.data;
+    }
+
+    public Map<String, Object> getLatency() {
+        return latency;
+    }
+
+    public void setLatency(Map<String, Object> latency) {
+        this.latency = latency;
+    }
+
+    public Map<String, Object> getException() {
+        return exception;
+    }
+
+    public void setException(Map<String, Object> exception) {
+        this.exception = exception;
+    }
+
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
     }
 }
