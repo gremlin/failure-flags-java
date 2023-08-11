@@ -1,5 +1,7 @@
 package com.javaSDK;
 
+import com.javaSDK.fault.Experiment;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,7 +20,7 @@ public class fetch {
         }
     }
 
-    public static void fetchExperiment(String name, Map<String, Object> labels, boolean debug) throws IOException {
+    public static Experiment fetchExperiment(String name, Map<String, Object> labels, boolean debug) throws IOException {
         if (debug) System.out.println("fetch experiment for " + name + " " + labels);
         if (name == null) {
             throw new IllegalArgumentException("invalid failure-flag name");
@@ -44,5 +46,7 @@ public class fetch {
         } else {
             System.out.println("HTTP status code: " + responseCode + ", message: " + conn.getResponseMessage());
         }
+
+
     }
 }

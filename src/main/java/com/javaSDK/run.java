@@ -8,31 +8,27 @@ import java.io.IOException;
 import java.util.Map;
 
 public class run {
+    static Experiment experiment = new Experiment();
+    static PrototypeObject defaultBehavior = new PrototypeObject();
+    public static void ifExperimentActive(String name, Map<String, Object> labels, boolean debug) throws IOException {
 
-    //get experiment from fetch
-    //get effectObject from fault
-    PrototypeObject defaultBehavior =fault.delayedDataOrException(experiment, effectObject);
 
-    public static boolean ifExperimentActive(String name, Map<String, Object> labels, boolean debug) throws IOException {
         if(debug){
             System.out.println("ifExperimentActive " + name + " " + labels);
         }
 
-        Experiment experiment = null;
         try {
             experiment = fetch.fetchExperiment(name, labels, debug);
         } catch (Exception ignore) {
             if (debug) {
                 System.out.println("Unable to fetch experiment: " + ignore.getMessage());
             }
-            return resolveOrFalse(debug, dataPrototype);
         }
 
         if (experiment == null) {
             if (debug) {
                 System.out.println("no experiment for " + name + " " + labels);
             }
-            return resolveOrFalse(debug, dataPrototype);
         }
 
         if (debug) {
@@ -46,16 +42,15 @@ public class run {
                 experiment.rate <= 1 &&
                 dice > experiment.rate) {
             if (debug) {
-                System.out.println("probablistically skipped " + behaviorError);
+                System.out.println("probablistically skipped " + new RuntimeException());
             }
-            return resolveOrFalse(debug, dataPrototype);
+
         }
         try {
-            if (dataPrototype != null) {
-                return behavior(experiment, dataPrototype);
+            if (defaultBehavior != null) {
+                fault.delayedDataOrException(experiment, defaultBehavior);
             } else {
-                behavior(experiment);
-                return true;
+                fault.delayedException(experiment);
             }
         } catch (Exception behaviorError) {
             if (debug) {
@@ -65,14 +60,5 @@ public class run {
         }
     }
 
-    public static Object resolveOrFalse(boolean debug, Object dataPrototype) {
-        Object value = (dataPrototype != null) ? dataPrototype : false;
-
-        if (debug) {
-            System.out.println("returning " + value);
-        }
-
-        return value;
-    }
 
 }
