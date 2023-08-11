@@ -1,6 +1,7 @@
-package com.javaSDK;
+package com.gremlin.failureflags;
 
-import com.javaSDK.fault.Experiment;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gremlin.failureflags.models.Experiment;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,9 +10,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class fetch {
+public class Fetch {
     public static void main(String[] args) {
         try {
             fetchExperiment("example", new HashMap<>(), false);
@@ -20,7 +22,10 @@ public class fetch {
         }
     }
 
+    //here im fetching all active experiments from the side cart
     public static Experiment fetchExperiment(String name, Map<String, Object> labels, boolean debug) throws IOException {
+        Experiment experiment = new Experiment();
+
         if (debug) System.out.println("fetch experiment for " + name + " " + labels);
         if (name == null) {
             throw new IllegalArgumentException("invalid failure-flag name");
@@ -39,14 +44,26 @@ public class fetch {
         try (OutputStream os = conn.getOutputStream()) {
             os.write(postDataBytes);
         }
-
+        ObjectMapper objectMapper = new ObjectMapper();
         int responseCode = conn.getResponseCode();
-        if (responseCode < 200 || responseCode > 299) {
-            throw new IOException("HTTP status code: " + responseCode + ", message: " + conn.getResponseMessage());
+        if (responseCode >= 200 && responseCode < 300) {
+            try (InputStream inputStream = conn.getInputStream()) {
+                // Parse the response content into a Map
+                @SuppressWarnings("unchecked")
+                Map<String, Object> jsonResponse = objectMapper.readValue(inputStream, Map.class);
+
+                experiment.setGuid((String) jsonResponse.get("failureFlagName"));
+                experiment.setGuid((String) jsonResponse.get("guid"));
+                experiment.setRate((double) jsonResponse.get("rate"));
+                experiment.setSelector((Map<String, List<String>>) jsonResponse.get("selector"));
+                experiment.setEffect((Map<String, Object>) jsonResponse.get("effect"));
+
+                System.out.println("JSON Response: " + jsonResponse);
+            }
         } else {
-            System.out.println("HTTP status code: " + responseCode + ", message: " + conn.getResponseMessage());
+            System.out.println("HTTP status code: " + responseCode);
         }
 
-
+        return experiment;
     }
 }

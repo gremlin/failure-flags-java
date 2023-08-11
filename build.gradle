@@ -18,6 +18,9 @@ dependencies {
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.1'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     implementation 'com.amazonaws:aws-lambda-java-events:3.11.1'
+    implementation 'org.projectlombok:lombok:1.18.22'
+    implementation 'org.projectlombok:lombok:1.18.22'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
     runtimeOnly 'com.amazonaws:aws-lambda-java-log4j2:1.5.1'
 
     // JUnit 5 Jupiter API

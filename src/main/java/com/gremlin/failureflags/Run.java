@@ -1,24 +1,23 @@
-package com.javaSDK;
+package com.gremlin.failureflags;
 
-import com.javaSDK.fault.EffectObject;
-import com.javaSDK.fault.Experiment;
-import com.javaSDK.fault.PrototypeObject;
+
+import com.gremlin.failureflags.models.Experiment;
+import com.gremlin.failureflags.models.PrototypeObject;
 
 import java.io.IOException;
 import java.util.Map;
 
-public class run {
-    static Experiment experiment = new Experiment();
+public class Run {
+    static Experiment experiment;
     static PrototypeObject defaultBehavior = new PrototypeObject();
     public static void ifExperimentActive(String name, Map<String, Object> labels, boolean debug) throws IOException {
-
 
         if(debug){
             System.out.println("ifExperimentActive " + name + " " + labels);
         }
 
         try {
-            experiment = fetch.fetchExperiment(name, labels, debug);
+            experiment = Fetch.fetchExperiment(name, labels, debug);
         } catch (Exception ignore) {
             if (debug) {
                 System.out.println("Unable to fetch experiment: " + ignore.getMessage());
@@ -35,12 +34,8 @@ public class run {
             System.out.println("fetched experiment " + experiment);
         }
         double dice = Math.random();
-        //rating coming in from user input
-        if (experiment.rate != null &&
-                experiment.rate instanceof Double &&
-                experiment.rate >= 0 &&
-                experiment.rate <= 1 &&
-                dice > experiment.rate) {
+
+        if (experiment.getRate() != null && experiment.getRate() >= 0 && experiment.getRate() <= 1 && dice > experiment.getRate()) {
             if (debug) {
                 System.out.println("probablistically skipped " + new RuntimeException());
             }
@@ -48,9 +43,9 @@ public class run {
         }
         try {
             if (defaultBehavior != null) {
-                fault.delayedDataOrException(experiment, defaultBehavior);
+                Fault.delayedDataOrException(experiment, defaultBehavior);
             } else {
-                fault.delayedException(experiment);
+                Fault.delayedException(experiment);
             }
         } catch (Exception behaviorError) {
             if (debug) {

@@ -1,9 +1,14 @@
-package com.javaSDK;
+package com.gremlin.failureflags;
+
+
+import com.gremlin.failureflags.models.PrototypeObject;
+import com.gremlin.failureflags.models.Experiment;
+import com.gremlin.failureflags.models.LatencyObject;
 
 import java.util.Map;
 import java.util.Random;
 
-public class fault {
+public class Fault {
 
     private static void timeout(long ms) {
         try {
@@ -14,8 +19,8 @@ public class fault {
     }
 
     public static void latency(Experiment experiment) {
-        EffectObject effectObject = experiment.effect;
-        Map<String,Object> latency = effectObject.latency;
+        Map<String, Object> effectObject = experiment.getEffect();
+        Map<String,Object> latency = (Map<String, Object>) effectObject.get("latency");
         if (latency == null)
             return;
         if (latency.get("latency") instanceof Integer) {
@@ -23,16 +28,16 @@ public class fault {
         } else if (latency.get("latency") instanceof String) {
             timeout(Integer.parseInt(latency.get("latency").toString()));
         } else if (latency.get("latency") instanceof LatencyObject latencyObject) {
-            int ms = latencyObject.ms != null ? latencyObject.ms : 0;
-            int jitter = latencyObject.jitter != null ?
-                     latencyObject.jitter * new Random().nextInt() : 0;
+            int ms = latencyObject.getMs() != null ? latencyObject.getMs() : 0;
+            int jitter = latencyObject.getJitter() != null ?
+                     latencyObject.getJitter() * new Random().nextInt() : 0;
             timeout(ms + jitter);
         }
     }
 
     public static void exception(Experiment experiment) {
-        EffectObject effectObject = experiment.effect;
-        Map<String,Object> exception = effectObject.exception;
+        Map<String, Object> effectObject = experiment.getEffect();
+        Map<String,Object> exception = (Map<String, Object>) effectObject.get("exception");
         if (exception == null)
             return;
         if (exception.get("exception") instanceof String) {
@@ -44,12 +49,11 @@ public class fault {
 
     //not worried about data related items yet
     public static PrototypeObject data(Experiment experiment, PrototypeObject prototype) {
-        if (experiment.effect == null || !(experiment.effect.data instanceof DataObject))
+        if (experiment.getEffect() == null || !(experiment.getEffect().get("data") instanceof DataObject data))
             return prototype;
 
         PrototypeObject toUse = prototype != null ? prototype : new PrototypeObject();
 
-        DataObject data = (DataObject) experiment.effect.data;
         PrototypeObject res = new PrototypeObject();
         res.copyProperties(toUse);
         res.copyProperties(data);
@@ -61,34 +65,12 @@ public class fault {
         exception(e);
     }
 
-    public static PrototypeObject delayedDataOrException(Experiment e, PrototypeObject dataPrototype) {
+    public static void delayedDataOrException(Experiment e, PrototypeObject dataPrototype) {
         latency(e);
         exception(e);
-        return data(e, dataPrototype);
+        data(e, dataPrototype);
     }
 
-    public static class EffectObject {
-        Map<String, Object> latency;
-        Map<String, Object> exception;
-        Map<String, Object> data;
-    }
-    public static class Experiment {
-        EffectObject effect;
-    }
-    public static class LatencyObject {
-        Integer ms;
-        Integer jitter;
-    }
-    public static class PrototypeObject {
-        Map<String, Object> latency;
-        Map<String, Object> exception;
-        Map<String, Object> data;
-        void copyProperties(PrototypeObject other) {
-            this.latency = other.latency;
-            this.exception = other.exception;
-            this.data = other.data;
-        }
-    }
     public static class ExceptionObject extends Throwable {
     }
 
