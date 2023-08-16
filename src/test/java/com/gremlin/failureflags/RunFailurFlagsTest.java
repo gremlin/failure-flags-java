@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.gremlin.failureflags.exceptions.FailureFlagException;
 import com.gremlin.failureflags.models.Experiment;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +43,7 @@ class RunFailureFlagsTest {
         Map<String, Object> labels = new HashMap<>();
         labels.put("key", "value");
         long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-        RunFailureFlags.ifExperimentActive("test-1", labels, true);
+        RunFailureFlags.ifExperimentActive("test-1", labels, null,null,true);
         long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
         assertTrue((end-start) < 150);
         wireMockServer.stop();
@@ -71,7 +70,7 @@ class RunFailureFlagsTest {
         Map<String, Object> labels = new HashMap<>();
         labels.put("key", "value");
         long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-        RunFailureFlags.ifExperimentActive("test-1", labels, true);
+        RunFailureFlags.ifExperimentActive("test-1", labels, null, null, true);
         long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
         assertTrue((end-start) < 600);
         wireMockServer.stop();
@@ -101,7 +100,7 @@ class RunFailureFlagsTest {
         Map<String, Object> labels = new HashMap<>();
         labels.put("key", "value");
         long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-        RunFailureFlags.ifExperimentActive("test-1", labels, true);
+        RunFailureFlags.ifExperimentActive("test-1", labels, null, null, true);
         long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
         assertTrue((end-start) > 500 && (end-start) < 700);
         wireMockServer.stop();
@@ -134,7 +133,7 @@ class RunFailureFlagsTest {
         labels.put("key", "value");
         long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            RunFailureFlags.ifExperimentActive("test-1", labels, true);
+            RunFailureFlags.ifExperimentActive("test-1", labels, null, null, true);
         });
         long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
         String actualMessage = exception.getMessage();
@@ -143,8 +142,6 @@ class RunFailureFlagsTest {
         assertTrue((end-start) > 500 && (end-start) < 700);
         wireMockServer.stop();
     }
-
-
 
 
 }

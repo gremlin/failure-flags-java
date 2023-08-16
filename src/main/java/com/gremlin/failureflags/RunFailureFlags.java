@@ -1,8 +1,8 @@
 package com.gremlin.failureflags;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gremlin.failureflags.exceptions.GremlinCoProcessException;
+import com.gremlin.failureflags.interfaces.Behavior;
 import com.gremlin.failureflags.models.Experiment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,17 +13,17 @@ import java.util.Map;
 
 public class RunFailureFlags {
     private static final Logger LOGGER = LoggerFactory.getLogger(RunFailureFlags.class);
-
     private static final Fetch fetch = new Fetch();
-    public static Experiment ifExperimentActive(String name, Map<String, Object> labels, boolean debug) throws IOException {
+    public static Experiment ifExperimentActive(String name, Map<String, Object> labels, Behavior behavior, Object dataObject, boolean debug) throws IOException {
 
         if (debug) {
             LOGGER.info("ifExperimentActive: name: {}, labels: {}", name, labels);
         }
+        Experiment experiment;
 
-        Experiment experiment = null;
         try {
             experiment = fetch.fetchExperiment(name, labels, debug);
+
         } catch (GremlinCoProcessException e) {
             if (debug) {
                 LOGGER.info("Unable to fetch experiment", e);
@@ -51,7 +51,12 @@ public class RunFailureFlags {
             }
         }
 
-        Fault.delayedException(experiment);
+        if(behavior == null){
+            Behavior.delayedException(experiment);
+        }
+        else {
+            Behavior.delayedDataOrException(experiment, dataObject);
+        }
 
         return experiment;
     }
