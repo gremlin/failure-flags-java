@@ -3,13 +3,14 @@ package com.gremlin.failureflags;
 
 import com.gremlin.failureflags.models.PrototypeObject;
 import com.gremlin.failureflags.models.Experiment;
-import com.gremlin.failureflags.models.LatencyObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.Map;
-import java.util.Random;
 
 public class Fault {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(Fault.class);
     private static void timeout(long ms) {
         try {
             Thread.sleep(ms);
@@ -19,31 +20,46 @@ public class Fault {
     }
 
     public static void latency(Experiment experiment) {
-        Map<String, Object> effectObject = experiment.getEffect();
-        Map<String,Object> latency = (Map<String, Object>) effectObject.get("latency");
-        if (latency == null)
-            return;
-        if (latency.get("latency") instanceof Integer) {
-            timeout((Integer) latency.get("latency"));
-        } else if (latency.get("latency") instanceof String) {
-            timeout(Integer.parseInt(latency.get("latency").toString()));
-        } else if (latency.get("latency") instanceof LatencyObject latencyObject) {
-            int ms = latencyObject.getMs() != null ? latencyObject.getMs() : 0;
-            int jitter = latencyObject.getJitter() != null ?
-                     latencyObject.getJitter() * new Random().nextInt() : 0;
-            timeout(ms + jitter);
+        if(experiment.getEffect().containsKey("latency")) {
+            Object latency = experiment.getEffect().get("latency");
+            if(latency instanceof String || latency instanceof Integer){
+                try {
+                    int latencyToInject = Integer.parseInt(experiment.getEffect().get("latency").toString());
+                    timeout(latencyToInject);
+                } catch (NumberFormatException nfe) {
+                    LOGGER.info("Invalid value for latency passed");
+                }
+
+            } else if (latency != null) {
+                Map<String, String> latencyMap = (Map<String, String>) latency;
+                Object ms = latencyMap.get("ms");
+                Object jitter = latencyMap.get("jitter");
+                if ((ms instanceof String || ms instanceof Integer) && (jitter instanceof String || jitter instanceof Integer)) {
+                    try {
+                        int latencyToInject = Integer.parseInt(ms.toString());
+                        long jitterMs = Integer.parseInt(jitter.toString());
+                        timeout(latencyToInject + (jitterMs == 0 ? 0 : (long) (Math.random() * jitterMs)));
+                    } catch (NumberFormatException nfe) {
+                        LOGGER.info("Unsupported effect statement");
+                    }
+                }
+            }
         }
     }
 
     public static void exception(Experiment experiment) {
-        Map<String, Object> effectObject = experiment.getEffect();
-        Map<String,Object> exception = (Map<String, Object>) effectObject.get("exception");
-        if (exception == null)
+        if (!experiment.getEffect().containsKey("exception")){
             return;
-        if (exception.get("exception") instanceof String) {
-            throw new RuntimeException(exception.get("exception").toString());
-        } else if (exception instanceof ExceptionObject exceptionObject) {
-            throw new RuntimeException("Exception injected by Failure Flags", exceptionObject);
+        }
+        Object exception =experiment.getEffect().get("exception");
+        if (exception instanceof String) {
+            throw new RuntimeException("Exception injected by failure flag: " + exception);
+        } else if (exception instanceof Map) {
+            Map<String, String> exceptionMap = (Map<String, String>) exception;
+            if (exceptionMap.containsKey("message") && exceptionMap.containsKey("name")) {
+                throw new RuntimeException("Exception injected by failure flag: message: "+ exceptionMap.get("message")
+                        + " name: " +exceptionMap.get("name"));
+            }
         }
     }
 

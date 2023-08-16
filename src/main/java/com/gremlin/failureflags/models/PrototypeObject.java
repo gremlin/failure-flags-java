@@ -1,12 +1,8 @@
 package com.gremlin.failureflags.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
-@NoArgsConstructor
-@AllArgsConstructor
+
 public class PrototypeObject {
     Map<String, Object> latency;
     Map<String, Object> exception;

@@ -1,26 +1,21 @@
 package com.gremlin.failureflags.models;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.Map;
 
-@NoArgsConstructor
-@AllArgsConstructor
 public class Experiment {
-    String failureFlagName;
+    String name;
     String guid;
-    Double rate;
-    Map<String, List<String>> selector;
+    float rate;
+    Selector selector;
     Map<String, Object> effect;
 
-    public String getFailureFlagName() {
-        return failureFlagName;
+    public String getName() {
+        return name;
     }
 
-    public void setFailureFlagName(String failureFlagName) {
-        this.failureFlagName = failureFlagName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getGuid() {
@@ -30,20 +25,18 @@ public class Experiment {
     public void setGuid(String guid) {
         this.guid = guid;
     }
-
-    public Double getRate() {
+    public float getRate() {
         return rate;
     }
 
-    public void setRate(Double rate) {
+    public void setRate(float rate) {
         this.rate = rate;
     }
-
-    public Map<String, List<String>> getSelector() {
+    public Selector getSelector() {
         return selector;
     }
 
-    public void setSelector(Map<String, List<String>> selector) {
+    public void setSelector(Selector selector) {
         this.selector = selector;
     }
 
