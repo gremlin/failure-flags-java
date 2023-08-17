@@ -62,6 +62,8 @@ public class GremlinFailureFlags implements FailureFlags {
 
     if (behavior == null) {
       new DelayedException().applyBehavior(activeExperiment);
+    } else {
+      behavior.applyBehavior(activeExperiment);
     }
     return activeExperiment;
   }
