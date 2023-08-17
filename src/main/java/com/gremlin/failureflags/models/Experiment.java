@@ -1,43 +1,43 @@
 package com.gremlin.failureflags.models;
 
-import java.util.List;
+
 import java.util.Map;
 
 public class Experiment {
-  String failureFlagName;
+  String name;
   String guid;
-
-  public void setRate(float rate) {
-    this.rate = rate;
-  }
-
   float rate;
-  Map<String, List<String>> selector;
-
-  public void setEffect(Map<String, Object> effect) {
-    this.effect = effect;
-  }
-
   Map<String, Object> effect;
 
-  public String getFailureFlagName() {
-    return failureFlagName;
+  public String getName() {
+    return name;
   }
 
+  public void setName(String name) {
+    this.name = name;
+  }
   public String getGuid() {
     return guid;
+  }
+
+  public void setGuid(String guid) {
+    this.guid = guid;
   }
 
   public float getRate() {
     return rate;
   }
 
-  public Map<String, List<String>> getSelector() {
-    return selector;
+  public void setRate(float rate) {
+    this.rate = rate;
   }
 
   public Map<String, Object> getEffect() {
     return effect;
+  }
+
+  public void setEffect(Map<String, Object> effect) {
+    this.effect = effect;
   }
 
 }

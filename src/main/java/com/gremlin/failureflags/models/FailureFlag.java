@@ -1,9 +1,8 @@
 package com.gremlin.failureflags.models;
 
-import java.util.List;
 import java.util.Map;
 
-public class ExperimentPayload {
+public class FailureFlag {
   String name;
 
   public String getName() {

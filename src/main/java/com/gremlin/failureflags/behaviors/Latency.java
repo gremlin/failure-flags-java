@@ -1,15 +1,13 @@
-package com.gremlin.failureflags;
+package com.gremlin.failureflags.behaviors;
 
+import com.gremlin.failureflags.Behavior;
 import com.gremlin.failureflags.exceptions.FailureFlagException;
 import com.gremlin.failureflags.models.Experiment;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class Faults {
-  private static final Logger LOGGER = LoggerFactory.getLogger(Faults.class);
+public class Latency implements Behavior {
 
-  public void latency(Experiment activeExperiment) {
+  public void applyBehavior(Experiment activeExperiment) {
     if (activeExperiment.getEffect().containsKey("latency")) {
       Object latencyObject = activeExperiment.getEffect().get("latency");
       if (latencyObject instanceof String || latencyObject instanceof Integer) {
@@ -38,33 +36,11 @@ public class Faults {
     }
   }
 
-  public void timeout(long ms) {
+  private void timeout(long ms) {
     try {
       Thread.sleep(ms);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-    }
-  }
-  public void delayedException(Experiment activeExperiment) {
-    latency(activeExperiment);
-    exception(activeExperiment);
-  }
-
-  public void exception(Experiment activeExperiment)  {
-    if (!activeExperiment.getEffect().containsKey("exception")) {
-      return;
-    }
-
-
-  Object failureFlagException = activeExperiment.getEffect().get("exception");
-    if (failureFlagException instanceof String) {
-      throw new FailureFlagException("Exception injected by failure flag: " + failureFlagException);
-    }
-    else if (failureFlagException instanceof Map) {
-      Map<String, String> exceptionMap = (Map<String, String>) failureFlagException;
-      if (exceptionMap.containsKey("message") && exceptionMap.containsKey("name")) {
-        throw new FailureFlagException(String.format("Exception injected by failure flag: message: {}, name: {}", exceptionMap.get("message"), exceptionMap.get("name")));
-      }
     }
   }
 

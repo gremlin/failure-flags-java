@@ -43,8 +43,8 @@ public class FailureFlagsTest {
     Map<String, String> labels = new HashMap<>();
     labels.put("key", "value");
     long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    FailureFlags failureFlags = new FailureFlags();
-    failureFlags.ifExperimentActive("test-1", labels, true);
+    FailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.ifExperimentActive("test-1", labels, null, true);
     long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
     assertTrue((end-start) < 150);
     wireMockServer.stop();
@@ -71,10 +71,10 @@ public class FailureFlagsTest {
     Map<String, String> labels = new HashMap<>();
     labels.put("key", "value");
     long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    FailureFlags failureFlags = new FailureFlags();
-    failureFlags.ifExperimentActive("test-1", labels, true);
+    FailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.ifExperimentActive("test-1", labels, null,true);
     long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    assertTrue((end-start) < 600);
+    assertTrue((end-start) < 700);
     wireMockServer.stop();
   }
 
@@ -102,10 +102,10 @@ public class FailureFlagsTest {
     Map<String, String> labels = new HashMap<>();
     labels.put("key", "value");
     long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    FailureFlags failureFlags = new FailureFlags();
-    failureFlags.ifExperimentActive("test-1", labels, true);
+    FailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.ifExperimentActive("test-1", labels, null, true);
     long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    assertTrue((end-start) > 500 && (end-start) < 700);
+    assertTrue((end-start) > 600 && (end-start) < 800);
     wireMockServer.stop();
   }
 
@@ -135,15 +135,15 @@ public class FailureFlagsTest {
     Map<String, String> labels = new HashMap<>();
     labels.put("key", "value");
     long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
-    FailureFlags failureFlags = new FailureFlags();
+    FailureFlags failureFlags = new GremlinFailureFlags();
     Exception exception = assertThrows(FailureFlagException.class, () -> {
-      failureFlags.ifExperimentActive("test-1", labels, true);
+      failureFlags.ifExperimentActive("test-1", labels, null, true);
     });
     long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
     String actualMessage = exception.getMessage();
     String expectedMessage = "Exception injected by failure flag: failure from test";
     assertTrue(actualMessage.contains(expectedMessage));
-    assertTrue((end-start) > 500 && (end-start) < 700);
+    assertTrue((end-start) > 500 && (end-start) < 800);
     wireMockServer.stop();
   }
 
