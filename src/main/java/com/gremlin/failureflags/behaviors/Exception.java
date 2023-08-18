@@ -14,11 +14,5 @@ public class Exception implements Behavior {
     if (failureFlagException instanceof String) {
       throw new FailureFlagException("Exception injected by failure flag: " + failureFlagException);
     }
-    else if (failureFlagException instanceof Map) {
-      Map<String, String> exceptionMap = (Map<String, String>) failureFlagException;
-      if (exceptionMap.containsKey("message") && exceptionMap.containsKey("name")) {
-        throw new FailureFlagException(String.format("Exception injected by failure flag: message: {}, name: {}", exceptionMap.get("message"), exceptionMap.get("name")));
-      }
-    }
   }
 }
