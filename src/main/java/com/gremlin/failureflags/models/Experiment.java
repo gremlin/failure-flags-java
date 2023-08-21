@@ -1,8 +1,10 @@
 package com.gremlin.failureflags.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Experiment {
   String name;
   String guid;
