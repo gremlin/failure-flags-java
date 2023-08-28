@@ -14,16 +14,17 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GremlinFailureFlags implements FailureFlags {
 
+  private static final String VERSION = FailureFlags.class.getPackage().getImplementationVersion();
   private static final Logger LOGGER = LoggerFactory.getLogger(FailureFlags.class);
   private static final String IOEXCEPTION_MESSAGE = "IOException during HTTP call to Gremlin co-process";
-  private static final ObjectMapper MAPPER =
-      new ObjectMapper();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   public Experiment ifExperimentActive(String name, Map<String, String> labels, Behavior behavior, boolean debug) {
     if (debug) {
@@ -73,12 +74,17 @@ public class GremlinFailureFlags implements FailureFlags {
       LOGGER.info("Invalid failure flag name {}", name);
       return null;
     }
+
+    Map<String,String> augmentedLabels = new HashMap<>();
+    augmentedLabels.putAll(labels);
+    augmentedLabels.put("failure-flags-sdk-version", "java-v"+VERSION);
+
     if (debug) {
-      LOGGER.info("fetching experiment for: name: {}, labels: {}", name, labels);
+      LOGGER.info("fetching experiment for: name: {}, labels: {}", name, augmentedLabels);
     }
     FailureFlag failureFlag = new FailureFlag();
     failureFlag.setName(name);
-    failureFlag.setLabels(labels);
+    failureFlag.setLabels(augmentedLabels);
 
     HttpClient client = HttpClient.newBuilder().build();
     try {
