@@ -27,6 +27,13 @@ test {
     useJUnitPlatform()
 }
 
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                'Implementation-Version': project.version)
+    }
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -43,10 +50,13 @@ publishing {
     }
     repositories {
         maven {
-            //Update to s3://maven.gremlin.com later once ready
-            url "s3://maven.staging.gremlin.com"
             authentication {
                 awsIm(AwsImAuthentication)
+            }
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://maven.staging.gremlin.com"
+            } else {
+                url "s3://maven.gremlin.com"
             }
         }
     }
