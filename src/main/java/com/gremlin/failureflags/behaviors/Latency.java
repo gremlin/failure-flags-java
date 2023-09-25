@@ -1,18 +1,53 @@
 package com.gremlin.failureflags.behaviors;
 
 import com.gremlin.failureflags.Behavior;
-import com.gremlin.failureflags.exceptions.FailureFlagException;
-import com.gremlin.failureflags.models.Experiment;
+import com.gremlin.failureflags.FailureFlagException;
+import com.gremlin.failureflags.Experiment;
 import java.util.Map;
 
+/**
+ * Latency calls Thread.sleep for some duration as specified by the "latency" property in an Effect statement for each
+ * experiment in a provided list of experiments. This implementation supports the following statement forms:
+ *
+ * 1. An object form with two properties, "ms" and or "jitter" where each is an integer in milliseconds.
+ * 2. A string containing an integer representing a consistent number of milliseconds to delay.
+ * 3. An integer representing a consistent number of milliseconds to delay.
+ *
+ * For example:
+ * {
+ *  ...
+ *   "latency": {
+ *       "ms": 1000,
+ *       "jitter": 100
+ *   }
+ *  ...
+ * }
+ *
+ * or
+ *
+ * {
+ *  ...
+ *   "latency": 1000
+ *  ...
+ * }
+ *
+ * or
+ *
+ * {
+ *  ...
+ *   "latency": "1000"
+ *  ...
+ * }
+ * */
 public class Latency implements Behavior {
 
-  public void applyBehavior(Experiment activeExperiment) {
-    if (activeExperiment.getEffect().containsKey("latency")) {
-      Object latencyObject = activeExperiment.getEffect().get("latency");
+  public void applyBehavior(Experiment[] experiments) {
+    for (Experiment e: experiments) {
+      if (!e.getEffect().containsKey("latency")) { continue; }
+      Object latencyObject = e.getEffect().get("latency");
       if (latencyObject instanceof String || latencyObject instanceof Integer) {
         try {
-          int latencyToInject = Integer.parseInt(activeExperiment.getEffect().get("latency").toString());
+          int latencyToInject = Integer.parseInt(e.getEffect().get("latency").toString());
           timeout(latencyToInject);
           return;
         } catch (NumberFormatException nfe) {

@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.gremlin'
-version '0.1-SNAPSHOT'
+version '0.2-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -39,7 +39,7 @@ publishing {
         maven(MavenPublication) {
             groupId = "com.gremlin"
             artifactId = "failure-flags-java"
-            version = "0.1-SNAPSHOT"
+            version = "0.2-SNAPSHOT"
             from components.java
 
             pom {

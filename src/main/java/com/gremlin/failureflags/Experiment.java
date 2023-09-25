@@ -1,4 +1,4 @@
-package com.gremlin.failureflags.models;
+package com.gremlin.failureflags;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

@@ -1,4 +1,4 @@
-package com.gremlin.failureflags.exceptions;
+package com.gremlin.failureflags;
 
 import java.util.Map;
 
