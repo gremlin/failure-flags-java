@@ -20,6 +20,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * GremlinFailureFlags is a full implementation of FailureFlags that integrates with the Gremlin sidecars and API.
+ * */
 public class GremlinFailureFlags implements FailureFlags {
 
   private static final String VERSION = FailureFlags.class.getPackage().getImplementationVersion();
@@ -27,9 +30,15 @@ public class GremlinFailureFlags implements FailureFlags {
   private static final String IOEXCEPTION_MESSAGE = "IOException during HTTP call to Gremlin co-process";
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  /**
+   * FAILURE_FLAGS_ENABLED contains the name of the environment variable to use to control the enabled status of this SDK.
+   * */
   public static final String FAILURE_FLAGS_ENABLED = "FAILURE_FLAGS_ENABLED";
 
   private final Behavior defaultBehavior;
+  /**
+   * enabled overrides any environment configuration to enable or disable this SDK. Setting to true will enable this SDK.
+   * */
   protected boolean enabled; // for testing purposes
 
   /**
@@ -41,6 +50,8 @@ public class GremlinFailureFlags implements FailureFlags {
 
   /**
    * Construct a new FailureFlags instance with a different default behavior chain.
+   * @param defaultBehavior the default behavior to use in all calls to <code>invoke</code> unless overridden by
+   *                        parameter on that specific invocation.
    * */
   public GremlinFailureFlags(Behavior defaultBehavior) {
     if (defaultBehavior == null) {
@@ -49,6 +60,10 @@ public class GremlinFailureFlags implements FailureFlags {
     this.defaultBehavior = defaultBehavior;
   }
 
+  /**
+   * getDefaultBehavior returns the current Behavior to be used in default invocations.
+   * @return the default behavior
+   * */
   public Behavior getDefaultBehavior() {
     return this.defaultBehavior;
   }
@@ -56,6 +71,7 @@ public class GremlinFailureFlags implements FailureFlags {
   /**
    * {@inheritDoc}
    * */
+  @Override
   public Experiment[] invoke(FailureFlag flag) {
     return invoke(flag, null);
   }
@@ -63,6 +79,7 @@ public class GremlinFailureFlags implements FailureFlags {
   /**
    * {@inheritDoc}
    * */
+  @Override
   public Experiment[] invoke(FailureFlag flag, Behavior behavior) {
     if (!System.getenv().containsKey(FAILURE_FLAGS_ENABLED) && !this.enabled) {
       return null;
@@ -119,6 +136,7 @@ public class GremlinFailureFlags implements FailureFlags {
   /**
    * {@inheritDoc}
    * */
+  @Override
   public Experiment[] fetch(FailureFlag flag) {
     if (flag == null) {
       return null;

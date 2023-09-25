@@ -41,6 +41,7 @@ import java.util.Map;
  * */
 public class Latency implements Behavior {
 
+  /**{@inheritDoc}*/
   public void applyBehavior(Experiment[] experiments) {
     for (Experiment e: experiments) {
       if (!e.getEffect().containsKey("latency")) { continue; }
