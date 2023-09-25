@@ -3,8 +3,7 @@ package com.gremlin.failureflags;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gremlin.failureflags.behaviors.DelayedException;
-import com.gremlin.failureflags.models.Experiment;
-import com.gremlin.failureflags.models.FailureFlag;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,7 +13,9 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,71 +27,121 @@ public class GremlinFailureFlags implements FailureFlags {
   private static final String IOEXCEPTION_MESSAGE = "IOException during HTTP call to Gremlin co-process";
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  public Experiment ifExperimentActive(String name, Map<String, String> labels, Behavior behavior, boolean debug) {
-    if (debug) {
-      LOGGER.info("ifExperimentActive: name: {}, labels: {}", name, labels);
+  public static final String FAILURE_FLAGS_ENABLED = "FAILURE_FLAGS_ENABLED";
+
+  private final Behavior defaultBehavior;
+  protected boolean enabled; // for testing purposes
+
+  /**
+   * Construct a new FailureFlags instance with the default configuration.
+   * */
+  public GremlinFailureFlags() {
+    defaultBehavior = new DelayedException();
+  }
+
+  /**
+   * Construct a new FailureFlags instance with a different default behavior chain.
+   * */
+  public GremlinFailureFlags(Behavior defaultBehavior) {
+    if (defaultBehavior == null) {
+      defaultBehavior = new DelayedException();
+    }
+    this.defaultBehavior = defaultBehavior;
+  }
+
+  public Behavior getDefaultBehavior() {
+    return this.defaultBehavior;
+  }
+
+  /**
+   * {@inheritDoc}
+   * */
+  public Experiment[] invoke(FailureFlag flag) {
+    return invoke(flag, null);
+  }
+
+  /**
+   * {@inheritDoc}
+   * */
+  public Experiment[] invoke(FailureFlag flag, Behavior behavior) {
+    if (!System.getenv().containsKey(FAILURE_FLAGS_ENABLED) && !this.enabled) {
+      return null;
+    }
+    if (flag == null) {
+      return null;
+    }
+    if (flag.getDebug()) {
+      LOGGER.info("ifExperimentActive: name: {}, labels: {}", flag.getName(), flag.getLabels());
     }
 
-    Experiment activeExperiment;
+    Experiment[] activeExperiments;
     try {
-      activeExperiment = fetchExperiment(name, labels, debug);
+      activeExperiments = fetch(flag);
     } catch (Exception e) {
-      if (debug) {
-        LOGGER.info("unable to fetch experiment", e);
+      if (flag.getDebug()) {
+        LOGGER.info("unable to fetch experiments", e);
       }
       return null;
     }
 
-    if (activeExperiment == null) {
-      if (debug) {
-        LOGGER.info("no experiment for name: {}, labels: {}", name, labels);
+    if (activeExperiments == null) {
+      if (flag.getDebug()) {
+        LOGGER.info("no experiment for name: {}, labels: {}", flag.getName(), flag.getLabels());
       }
       return null;
     }
 
-    if (debug) {
-      LOGGER.info("fetched experiment {}", activeExperiment);
+    if (flag.getDebug()) {
+      LOGGER.info("{} fetched experiments", activeExperiments.length);
     }
     double dice = Math.random();
-    if(activeExperiment.getRate() >= 0 &&
-        activeExperiment.getRate() <= 1 &&
-        dice > activeExperiment.getRate()) {
-      if (debug) {
-        LOGGER.info("probablistically skipped");
-        return null;
+    List<Experiment> filteredExperiments = new ArrayList<>(activeExperiments.length);
+    for (Experiment e: activeExperiments) {
+      if(e.getRate() > 0 && e.getRate() <= 1 && dice < e.getRate()) {
+        filteredExperiments.add(e);
       }
+    }
+    Experiment[] experiments = new Experiment[filteredExperiments.size()];
+    filteredExperiments.toArray(experiments);
+
+    if (experiments.length <= 0) {
+      return null;
     }
 
     if (behavior == null) {
-      new DelayedException().applyBehavior(activeExperiment);
+      this.defaultBehavior.applyBehavior(experiments);
     } else {
-      behavior.applyBehavior(activeExperiment);
+      behavior.applyBehavior(experiments);
     }
-    return activeExperiment;
+    return activeExperiments;
   }
 
-  public Experiment fetchExperiment(String name, Map<String, String> labels, boolean debug) {
-    if (name == null || name.isEmpty()) {
-      LOGGER.info("Invalid failure flag name {}", name);
+  /**
+   * {@inheritDoc}
+   * */
+  public Experiment[] fetch(FailureFlag flag) {
+    if (flag == null) {
+      return null;
+    }
+    if (flag.getName() == null || flag.getName().isEmpty()) {
+      LOGGER.info("Invalid failure flag name {}", flag.getName());
       return null;
     }
 
-    Map<String,String> augmentedLabels = new HashMap<>();
-    augmentedLabels.putAll(labels);
+    Map<String,String> augmentedLabels = new HashMap<>(flag.getLabels());
     augmentedLabels.put("failure-flags-sdk-version", "java-v"+VERSION);
 
-    if (debug) {
-      LOGGER.info("fetching experiment for: name: {}, labels: {}", name, augmentedLabels);
+    if (flag.getDebug()) {
+      LOGGER.info("fetching experiments for: name: {}, labels: {}", flag.getName(), augmentedLabels);
     }
-    FailureFlag failureFlag = new FailureFlag();
-    failureFlag.setName(name);
-    failureFlag.setLabels(augmentedLabels);
+    flag.setLabels(augmentedLabels);
 
     HttpClient client = HttpClient.newBuilder().build();
     try {
       HttpRequest request = HttpRequest.newBuilder()
           .uri(URI.create("http://localhost:5032/experiment"))
-          .POST(BodyPublishers.ofString(MAPPER.writeValueAsString(failureFlag)))
+          .header("Content-Type", "application/json")
+          .POST(BodyPublishers.ofString(MAPPER.writeValueAsString(flag)))
           .timeout(Duration.of(150, ChronoUnit.MILLIS))
           .build();
 
@@ -100,8 +151,17 @@ public class GremlinFailureFlags implements FailureFlags {
       if (statusCode == 204) {
         return null;
       } else if (statusCode >= 200 && statusCode < 300) {
-        Experiment experiment = MAPPER.readValue(response.body(), Experiment.class);
-        return experiment;
+        Experiment[] experiments = null;
+        try {
+          experiments = MAPPER.readValue(response.body(), Experiment[].class);
+        } catch (JsonProcessingException e) {
+          try {
+            experiments = new Experiment[]{MAPPER.readValue(response.body(), Experiment.class)};
+          } catch (JsonProcessingException innerE) {
+            // it actually broke
+          }
+        }
+        return experiments;
       }
       return null;
     } catch(JsonProcessingException e) {
@@ -113,5 +173,4 @@ public class GremlinFailureFlags implements FailureFlags {
     }
     return null;
   }
-
 }

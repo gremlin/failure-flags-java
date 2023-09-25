@@ -1,11 +1,11 @@
 package com.gremlin.failureflags.behaviors;
 
 import com.gremlin.failureflags.Behavior;
-import com.gremlin.failureflags.models.Experiment;
+import com.gremlin.failureflags.Experiment;
 
 public class DelayedException implements Behavior {
-  public void applyBehavior(Experiment activeExperiment) {
-    new Latency().applyBehavior(activeExperiment);
-    new Exception().applyBehavior(activeExperiment);
+  public void applyBehavior(Experiment[] experiments) {
+    new Latency().applyBehavior(experiments);
+    new Exception().applyBehavior(experiments);
   }
 }
