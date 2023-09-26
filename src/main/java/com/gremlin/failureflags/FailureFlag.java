@@ -19,6 +19,17 @@ public class FailureFlag {
    *
    * @param name the name of the FailureFlag
    * @param labels the labels of the FailureFlag
+   * */
+  public FailureFlag(String name, Map<String, String> labels) {
+    this.name = name;
+    this.labels = labels;
+    this.debug = false;
+  }
+  /**
+   * Construct a new FailureFlag and set all options.
+   *
+   * @param name the name of the FailureFlag
+   * @param labels the labels of the FailureFlag
    * @param debug the debug state of the FailureFlag
    * */
   public FailureFlag(String name, Map<String, String> labels, boolean debug) {
