@@ -138,6 +138,9 @@ public class GremlinFailureFlags implements FailureFlags {
    * */
   @Override
   public Experiment[] fetch(FailureFlag flag) {
+    if (!System.getenv().containsKey(FAILURE_FLAGS_ENABLED) && !this.enabled) {
+      return null;
+    }
     if (flag == null) {
       return null;
     }
@@ -160,7 +163,6 @@ public class GremlinFailureFlags implements FailureFlags {
           .uri(URI.create("http://localhost:5032/experiment"))
           .header("Content-Type", "application/json")
           .POST(BodyPublishers.ofString(MAPPER.writeValueAsString(flag)))
-          .timeout(Duration.of(150, ChronoUnit.MILLIS))
           .build();
 
       HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
