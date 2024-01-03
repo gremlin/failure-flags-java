@@ -4,15 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gremlin.failureflags.behaviors.DelayedException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -157,26 +155,38 @@ public class GremlinFailureFlags implements FailureFlags {
     }
     flag.setLabels(augmentedLabels);
 
-    HttpClient client = HttpClient.newBuilder().build();
     try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(URI.create("http://localhost:5032/experiment"))
-          .header("Content-Type", "application/json")
-          .POST(BodyPublishers.ofString(MAPPER.writeValueAsString(flag)))
-          .build();
+      HttpURLConnection con = (HttpURLConnection) URI.create("http://localhost:5032/experiment").toURL().openConnection();
+      con.setRequestMethod("POST");
+      con.setRequestProperty("Content-Type", "application/json");
+      con.setDoOutput(true);
+      String jsonInputString = MAPPER.writeValueAsString(flag);
+      try(OutputStream os = con.getOutputStream()) {
+        byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+        os.write(input, 0, input.length);
+      }
 
-      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-      int statusCode = response.statusCode();
-
+      int statusCode = con.getResponseCode();
       if (statusCode == 204) {
         return null;
       } else if (statusCode >= 200 && statusCode < 300) {
         Experiment[] experiments = null;
+        String output;
+        StringBuilder responseBody = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(
+            new InputStreamReader(
+                con.getInputStream()))) {
+
+          while ((output = in.readLine()) != null) {
+            responseBody.append(output);
+          }
+        }
+
         try {
-          experiments = MAPPER.readValue(response.body(), Experiment[].class);
+          experiments = MAPPER.readValue(responseBody.toString(), Experiment[].class);
         } catch (JsonProcessingException e) {
           try {
-            experiments = new Experiment[]{MAPPER.readValue(response.body(), Experiment.class)};
+            experiments = new Experiment[]{MAPPER.readValue(responseBody.toString(), Experiment.class)};
           } catch (JsonProcessingException innerE) {
             // it actually broke
           }
@@ -188,7 +198,7 @@ public class GremlinFailureFlags implements FailureFlags {
       LOGGER.error("Unable to serialize or deserialize", e);
     } catch(IOException e) {
       LOGGER.error(IOEXCEPTION_MESSAGE, e);
-    } catch(InterruptedException e) {
+    } catch(RuntimeException e) {
       LOGGER.error("Something went wrong when sending request", e);
     }
     return null;
