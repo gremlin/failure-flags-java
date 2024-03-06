@@ -64,7 +64,7 @@ public class FailureFlagsTest {
             (experiments) -> { fail("default behavior must not be called"); });
     failureFlags.enabled = true;
     failureFlags.invoke(
-            new FailureFlag("test-1", Map.of("method", "POST"), true),
+            new FailureFlag("test-1", new HashMap<String,String>(){{put("method", "POST");}}, true),
             (experiments) -> { fail("custom behavior must not be called"); });
   }
 
