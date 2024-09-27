@@ -31,12 +31,30 @@ maven {
 Then bring in the library and instrument the part of your application where you want to inject faults. 
 
 ```java
+// Step 1: add the Failure Flags SDK to your dependencies
 import com.gremlin.failureflags.*
 ...
 
+// Step 2: instantiate a FailureFlags instance
 FailureFlags gremlin = new GremlinFailureFlags();
-        
-gremlin.invoke(FailureFlag(name: 'flagname', labels: {}));
+
+// Step 3: call the invoke method at the point in your code where you want to be able to experiment
+gremlin.invoke(
+    new FailureFlag(    // Pass in an instance of a Failure Flag
+        "http-ingress", // Set the name of the flag. This should mean something
+                        // to you and the team. These are not special values.
+
+        Map.of(         // Pass in a map of information that describes each
+                        // invocation. This is used for experiment targeting.
+          // This example passes the HTTP method and path from an HTTP request.
+          // Because these have been provided an experiment defined later can 
+          // target invocations matching some subset of these labels
+          // (IE "method: POST").
+          "method", request.getMethod(),
+          "path", request.getPath()
+        )
+    )
+);
 
 ...
 ```
