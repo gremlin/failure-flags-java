@@ -19,7 +19,9 @@ import com.gremlin.failureflags.behaviors.Latency;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -189,6 +191,36 @@ public class FailureFlagsTest {
     assertTrue((end-start) < 700);
   }
 
+  @Test
+  public void invoke_introducesTwoLatency_whenTwoExperimentsReturnedAndLatencyInEffectAndLatencyBehaviorPassed() {
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("latency", 500);
+    Experiment exp1 = new Experiment();
+    exp1.setEffect(effect);
+    exp1.setRate(1.0f);
+    Experiment exp2 = new Experiment();
+    exp2.setEffect(effect);
+    exp2.setRate(1.0f);
+    List<Experiment> experiments = Arrays.asList(exp1, exp2);
+
+    try {
+      stubFor(post(urlEqualTo("/experiment"))
+          .willReturn(aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", "application/json")
+              .withBody(MAPPER.writeValueAsString(experiments))));
+    } catch (JsonProcessingException e) {
+
+    }
+    Map<String, String> labels = new HashMap<>();
+    labels.put("key", "value");
+    long start = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    failureFlags.invoke(new FailureFlag("test-1", labels, true), new Latency());
+    long end = LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli();
+    assertTrue((end-start) > 900);
+  }
 
   @Test
   public void invoke_introducesLatency_whenExperimentReturnedAndLatencyInEffectInObject() {
