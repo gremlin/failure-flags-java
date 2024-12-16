@@ -50,7 +50,7 @@ public class Latency implements Behavior {
         try {
           int latencyToInject = Integer.parseInt(e.getEffect().get("latency").toString());
           timeout(latencyToInject);
-          return;
+          continue;
         } catch (NumberFormatException nfe) {
           throw new FailureFlagException("Invalid value for latency passed");
         }
