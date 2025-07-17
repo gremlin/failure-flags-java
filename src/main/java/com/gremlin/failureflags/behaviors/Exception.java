@@ -3,6 +3,8 @@ package com.gremlin.failureflags.behaviors;
 import com.gremlin.failureflags.Behavior;
 import com.gremlin.failureflags.FailureFlagException;
 import com.gremlin.failureflags.Experiment;
+import java.util.Map;
+
 /**
  * Exception processes <code>exception</code> properties in experiment effects.
  *
@@ -20,9 +22,20 @@ public class Exception implements Behavior {
         continue;
       }
       Object failureFlagException = e.getEffect().get("exception");
+
+      // For backwards compatibility with earlier versions of the SDK
       if (failureFlagException instanceof String) {
         throw new FailureFlagException("Exception injected by failure flag: " + failureFlagException);
       }
+
+      // Standard behavior for exception FF Experiments:
+      if (failureFlagException instanceof Map) {
+        Object message = ((Map)failureFlagException).get("message");
+        if (message instanceof String) {
+          throw new FailureFlagException("Exception injected by failure flag: " + message);
+        }
+      }
+
     }
   }
 }
