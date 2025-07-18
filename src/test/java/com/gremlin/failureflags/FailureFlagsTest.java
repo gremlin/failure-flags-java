@@ -8,6 +8,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,6 +27,7 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import wiremock.com.google.common.collect.ImmutableMap;
 
 public class FailureFlagsTest {
 
@@ -319,6 +321,43 @@ public class FailureFlagsTest {
     String expectedMessage = "Exception injected by failure flag: failure from test";
     assertTrue(actualMessage.contains(expectedMessage));
     assertTrue((end-start) > 500 && (end-start) < 800);
+  }
+
+  @Test
+  public void invoke_throwsExceptionWithMessage_whenExperimentReturnedAndExceptionInEffectInObjectAndBehaviorPassed() {
+    Map<String, Object> effect = new HashMap<>();
+    String exceptionMessage = "exception message";
+    effect.put("exception", ImmutableMap.of("message", exceptionMessage));
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(1.0f);
+
+    try {
+      stubFor(post(urlEqualTo("/experiment"))
+          .willReturn(aResponse()
+              .withStatus(200)
+              .withHeader("Content-Type", "application/json")
+              .withBody(MAPPER.writeValueAsString(experiment))));
+    } catch (JsonProcessingException ignored) {}
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    Exception exception = assertThrows(FailureFlagException.class,
+        () -> failureFlags.invoke(new FailureFlag("test-1",
+            ImmutableMap.of("key", "value"),
+            true),
+        new DelayedException()));
+    String expectedMessage = "Exception injected by failure flag: " + exceptionMessage;
+    assertEquals(expectedMessage, exception.getMessage());
+
+    // For backwards compat we still support the old form
+    effect.put("exception", exceptionMessage);
+    Exception secondException = assertThrows(FailureFlagException.class,
+        () -> failureFlags.invoke(new FailureFlag("test-1",
+                ImmutableMap.of("key", "value"),
+                true),
+            new DelayedException()));
+    assertEquals(expectedMessage, secondException.getMessage());
   }
 
 }
