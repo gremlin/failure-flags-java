@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +130,59 @@ public class GremlinFailureFlags implements FailureFlags {
       behavior.applyBehavior(experiments);
     }
     return activeExperiments;
+  }
+
+  /**
+   * {@inheritDoc}
+   * */
+  @Override
+  public <T> T invoke(FailureFlag flag, T original, BehaviorWithEffect<T> behavior) {
+    if (!System.getenv().containsKey(FAILURE_FLAGS_ENABLED) && !this.enabled) {
+      return original;
+    }
+    if (flag == null || behavior == null) {
+      return original;
+    }
+    if (flag.getDebug()) {
+      LOGGER.info("ifExperimentActive: name: {}, labels: {}", flag.getName(), flag.getLabels());
+    }
+
+    Experiment[] activeExperiments;
+    try {
+      activeExperiments = fetch(flag);
+    } catch (Exception e) {
+      if (flag.getDebug()) {
+        LOGGER.info("unable to fetch experiments", e);
+      }
+      return original;
+    }
+
+    if (activeExperiments == null) {
+      if (flag.getDebug()) {
+        LOGGER.info("no experiment for name: {}, labels: {}", flag.getName(), flag.getLabels());
+      }
+      return original;
+    }
+
+    if (flag.getDebug()) {
+      LOGGER.info("{} fetched experiments", activeExperiments.length);
+    }
+    double dice = Math.random();
+    List<Experiment> filteredExperiments = new ArrayList<>(activeExperiments.length);
+    for (Experiment e : activeExperiments) {
+      if (e.getRate() > 0 && e.getRate() <= 1 && dice < e.getRate()) {
+        filteredExperiments.add(e);
+      }
+    }
+    Experiment[] experiments = new Experiment[filteredExperiments.size()];
+    filteredExperiments.toArray(experiments);
+
+    if (experiments.length <= 0) {
+      return original;
+    }
+
+    Optional<T> result = behavior.applyBehavior(experiments, original);
+    return result.orElse(original);
   }
 
   /**

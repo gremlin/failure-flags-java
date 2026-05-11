@@ -9,12 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.gremlin.failureflags.behaviors.DataEffect;
 import com.gremlin.failureflags.behaviors.DelayedException;
 import com.gremlin.failureflags.behaviors.Latency;
 
@@ -358,6 +360,188 @@ public class FailureFlagsTest {
                 true),
             new DelayedException()));
     assertEquals(expectedMessage, secondException.getMessage());
+  }
+
+  // --- BehaviorWithEffect / DataEffect tests ---
+
+  @Test
+  public void invokeWithEffect_returnsOriginal_whenDisabled() {
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = false;
+    String original = "original";
+    String result = failureFlags.invoke(new FailureFlag("test-effect", new HashMap<>(), false),
+        original, (experiments, val) -> { fail("behavior must not be called"); return java.util.Optional.empty(); });
+    assertEquals(original, result);
+  }
+
+  @Test
+  public void invokeWithEffect_returnsOriginal_whenNoExperimentReturned() {
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(204)));
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    String original = "original";
+    String result = failureFlags.invoke(new FailureFlag("test-effect", new HashMap<>(), false),
+        original, (experiments, val) -> { fail("behavior must not be called"); return java.util.Optional.empty(); });
+    assertEquals(original, result);
+  }
+
+  @Test
+  public void invokeWithEffect_returnsOriginal_whenBehaviorReturnsEmpty() throws JsonProcessingException {
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("latency", 0);
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(1.0f);
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(MAPPER.writeValueAsString(experiment))));
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    String original = "original";
+    String result = failureFlags.invoke(new FailureFlag("test-effect", new HashMap<>(), false),
+        original, (experiments, val) -> java.util.Optional.empty());
+    assertEquals(original, result);
+  }
+
+  @Test
+  public void invokeWithEffect_returnsReplacement_whenBehaviorReturnsValue() throws JsonProcessingException {
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("data", "injected");
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(1.0f);
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(MAPPER.writeValueAsString(experiment))));
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    String result = failureFlags.invoke(
+        new FailureFlag("test-effect", new HashMap<>(), false),
+        "original",
+        (experiments, val) -> java.util.Optional.of("replaced"));
+    assertEquals("replaced", result);
+  }
+
+  @Test
+  public void invokeWithEffect_returnsOriginal_whenExperimentRateZero() throws JsonProcessingException {
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("data", "injected");
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(0f);
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(MAPPER.writeValueAsString(new Experiment[]{experiment}))));
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    String original = "original";
+    String result = failureFlags.invoke(
+        new FailureFlag("test-effect", new HashMap<>(), false),
+        original,
+        (experiments, val) -> { fail("behavior must not be called"); return java.util.Optional.empty(); });
+    assertEquals(original, result);
+  }
+
+  @Test
+  public void dataEffect_replacesValue_whenEffectDataPresent() throws JsonProcessingException {
+    Map<String, Object> data = new HashMap<>();
+    data.put("key", "mutated-value");
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("data", data);
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(1.0f);
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(MAPPER.writeValueAsString(experiment))));
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+
+    Map<String, Object> original = new HashMap<>();
+    original.put("key", "original-value");
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> result = failureFlags.invoke(
+        new FailureFlag("test-data-effect", new HashMap<>(), false),
+        original,
+        new DataEffect<>((Class<Map<String, Object>>) (Class<?>) Map.class));
+    assertEquals("mutated-value", result.get("key"));
+  }
+
+  @Test
+  public void dataEffect_returnsOriginal_whenEffectDataAbsent() throws JsonProcessingException {
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("latency", 0);
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(1.0f);
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(MAPPER.writeValueAsString(experiment))));
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    String original = "original";
+    String result = failureFlags.invoke(
+        new FailureFlag("test-data-effect-absent", new HashMap<>(), false),
+        original,
+        new DataEffect<>(String.class));
+    assertEquals(original, result);
+  }
+
+  @Test
+  public void dataEffect_replacesStringValue() throws JsonProcessingException {
+    Map<String, Object> effect = new HashMap<>();
+    effect.put("data", "injected-string");
+    Experiment experiment = new Experiment();
+    experiment.setEffect(effect);
+    experiment.setRate(1.0f);
+    stubFor(post(urlEqualTo("/experiment"))
+        .willReturn(aResponse()
+            .withStatus(200)
+            .withHeader("Content-Type", "application/json")
+            .withBody(MAPPER.writeValueAsString(experiment))));
+
+    GremlinFailureFlags failureFlags = new GremlinFailureFlags();
+    failureFlags.enabled = true;
+    String result = failureFlags.invoke(
+        new FailureFlag("test-data-effect-string", new HashMap<>(), false),
+        "original",
+        new DataEffect<>(String.class));
+    assertEquals("injected-string", result);
+  }
+
+  @Test
+  public void noopFailureFlags_invokeWithEffect_returnsOriginal() {
+    NoopFailureFlags noop = new NoopFailureFlags();
+    String original = "original";
+    String result = noop.invoke(new FailureFlag("test", new HashMap<>(), false),
+        original, (experiments, val) -> java.util.Optional.of("should-not-be-used"));
+    assertEquals(original, result);
+  }
+
+  @Test
+  public void noopFailureFlags_invokeWithEffect_returnsNullOriginal() {
+    NoopFailureFlags noop = new NoopFailureFlags();
+    String result = noop.invoke(new FailureFlag("test", new HashMap<>(), false),
+        null, (experiments, val) -> java.util.Optional.of("should-not-be-used"));
+    assertNull(result);
   }
 
 }

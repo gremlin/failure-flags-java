@@ -15,6 +15,11 @@ public class NoopFailureFlags implements FailureFlags {
     }
 
     @Override
+    public <T> T invoke(FailureFlag flag, T original, BehaviorWithEffect<T> behavior) {
+        return original;
+    }
+
+    @Override
     public Experiment[] fetch(FailureFlag flag) {
         return null;
     }

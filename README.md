@@ -246,6 +246,16 @@ This Effect Statement will cause a Failure Flag to pause for a full 2 seconds be
 }
 ```
 
+### Inject Synthetic Response Data
+
+The `data` effect replaces the return value of the instrumented call with whatever you configure in the experiment. This is useful for simulating degraded responses, empty result sets, throttling replies, or any other scenario where the response content matters more than latency or exceptions.
+
+```json
+{ "data": { "status": "THROTTLED", "retryAfter": 30 } }
+```
+
+To use this effect your instrumentation must use the `BehaviorWithEffect` form of `invoke` described below.
+
 ### Advanced: Providing Metadata to Custom Behaviors
 
 The default effect chain included with the Failure Flags SDK is aware of well-known effect properties including, "latency" and "exception." The user can extend or replace that functionality and use the same properties, or provide their own. For example, suppose a user wants to use a "random jitter" effect that the Standard Chain does not provide. Suppose they wanted to inject a random amount of jitter up to some maximum. They could implement that small extension and make up their own Effect property called, "my-jitter" that specifies that maximum. The resulting Effect Statement would look like:
@@ -261,4 +271,64 @@ They might also combine this with parts of the default chain:
   "latency": 1000,
   "my-jitter": 500
 }
+```
+
+## Mutating Return Values
+
+The standard `invoke` form applies side-effect behaviors like latency and exceptions but cannot change what a method returns. When you need to inject a synthetic response — replacing what a downstream call returns rather than just delaying or crashing it — use the `BehaviorWithEffect` form of `invoke`.
+
+This form takes the original return value, applies the experiment's behavior, and returns either the replacement supplied by the behavior or the original if no mutation was requested.
+
+### Using the Built-in `DataEffect`
+
+`DataEffect` reads `effect.data` from the active experiment and converts it to your target type using Jackson. Pass it the expected return type and it handles the rest.
+
+```java
+import com.gremlin.failureflags.FailureFlags;
+import com.gremlin.failureflags.GremlinFailureFlags;
+import com.gremlin.failureflags.FailureFlag;
+import com.gremlin.failureflags.behaviors.DataEffect;
+
+FailureFlags gremlin = new GremlinFailureFlags();
+
+// Call the downstream dependency as normal.
+QueryResponse response = dynamoDb.query(request);
+
+// Pass the result through invoke. If a matching experiment is running with an
+// effect.data payload, response is replaced with the synthetic value.
+// Otherwise it is returned unchanged.
+response = gremlin.invoke(
+    new FailureFlag("dynamo-query", Map.of("table", tableName)),
+    response,
+    new DataEffect<>(QueryResponse.class));
+```
+
+The experiment effect JSON for this example would look like:
+
+```json
+{
+  "data": {
+    "count": 0,
+    "items": []
+  }
+}
+```
+
+### Writing a Custom `BehaviorWithEffect`
+
+`BehaviorWithEffect<T>` is a functional interface. Return `Optional.of(replacement)` to swap the value, or `Optional.empty()` to leave it unchanged.
+
+```java
+response = gremlin.invoke(
+    new FailureFlag("dynamo-query", Map.of("table", tableName)),
+    response,
+    (experiments, original) -> {
+        // Inspect the experiments and decide whether to mutate.
+        for (Experiment e : experiments) {
+            if (e.getEffect().containsKey("emptyResult")) {
+                return Optional.of(QueryResponse.builder().count(0).build());
+            }
+        }
+        return Optional.empty(); // leave original unchanged
+    });
 ```
