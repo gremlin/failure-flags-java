@@ -12,10 +12,16 @@ repositories {
 }
 
 java {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
     withSourcesJar()
     withJavadocJar()
+}
+
+// options.release (not sourceCompatibility/targetCompatibility) both sets the
+// output bytecode version AND validates against the real Java 8 API surface,
+// so building with a newer JDK can't accidentally call an API that doesn't
+// exist on an actual Java 8 runtime.
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
 }
 
 
