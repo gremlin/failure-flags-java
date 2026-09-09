@@ -1,10 +1,25 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'com.palantir.git-version' version '3.4.0'
 }
 
 group 'com.gremlin'
-version '1.2'
+
+// Version comes from the git tag, not a hand-maintained constant, so it can
+// never drift from the tag a release is cut from. HEAD exactly on a semver
+// tag like "v1.2.3" (and clean) -> "1.2.3", published to
+// s3://maven.gremlin.com. Anything else (main between releases, or a tag
+// that isn't full semver) -> "<describe>-SNAPSHOT", which routes to
+// s3://maven.staging.gremlin.com below. Release tags must be full semver
+// (MAJOR.MINOR.PATCH, e.g. "v1.3.0") going forward -- the old "v1.2"
+// shorthand no longer qualifies as a release tag.
+def gitDetails = versionDetails()
+def semverPattern = /v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?(?:\+[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*)?/
+def isReleaseTag = gitDetails.lastTag ==~ semverPattern
+version = (isReleaseTag && gitDetails.isCleanTag) \
+    ? gitDetails.lastTag.substring(1) \
+    : "${gitVersion().replaceFirst(/^v/, '')}-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -53,7 +68,6 @@ publishing {
         maven(MavenPublication) {
             groupId = "com.gremlin"
             artifactId = "failure-flags-java"
-            version = "1.2"
             from components.java
 
             pom {
